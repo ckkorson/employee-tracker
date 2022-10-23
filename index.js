@@ -2,8 +2,9 @@ const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 
-let allRoles =['Sales Lead', 'Salesperson', 'Engineering Manager', 'Software Engineer', 'Account Manager',
-'Accountant', 'HR Manager', 'HR Specialist'];
+// let allRoles =['Sales Lead', 'Salesperson', 'Engineering Manager', 'Software Engineer', 'Account Manager',
+// 'Accountant', 'HR Manager', 'HR Specialist'];
+let allRoles =[];
 
 const db = mysql.createConnection(
     {
@@ -13,9 +14,9 @@ const db = mysql.createConnection(
       database: 'employees_db'
     },
     console.log(`Connected to the employees_db database.`)
-  );
+);
 
-  const mainMenu = () => {
+const mainMenu = () => {
     inquirer.prompt (
         {
             type: 'list',
@@ -33,28 +34,30 @@ const db = mysql.createConnection(
         } else if (data.menu === 'View All Employees') {
             viewEmployees()
         } else if (data.menu === 'Add Employee') {
-            addEmployee()
+            rolesQuery()
+        } else if (data.menu === 'Add Department') {
+            addDept()
         }
     })
-  }
+}
 
-  const viewDepartments = () => {
+const viewDepartments = () => {
     db.query('SELECT * FROM departments', function (err, results) {
         console.table(results);
         mainMenu()
       });
-  }
+}
 
-  const viewRoles = () => {
+const viewRoles = () => {
     db.query(`SELECT employee_role.id, employee_role.title ,departments.dept_name, employee_role.salary
         FROM departments
         JOIN employee_role ON employee_role.department_id=departments.id`, function (err, results) {
             console.table(results);
             mainMenu()
           });
-  }
+}
 
-  const viewEmployees = () => {
+const viewEmployees = () => {
     db.query(`SELECT employees.id, employees.first_name, employees.last_name, departments.dept_name, employee_role.salary
         FROM employees
         JOIN employee_role ON employee_role.id=employees.role_id
@@ -62,9 +65,9 @@ const db = mysql.createConnection(
             console.table(results);
             mainMenu()
         })
-  }
+}
 
-  const addEmployee = () => {
+const addEmployee = () => {
     inquirer.prompt ([
         {
             type: 'input',
@@ -99,40 +102,40 @@ const db = mysql.createConnection(
         let newLastName = data.lastName;
         let newManager = data.manager
         db.query(`SELECT id FROM employee_role WHERE title = ?`, data.role, function(err, results) {
-            // console.log(results[0].id)
-            let values = [newId, newFirstName, newLastName, results[0].id, newManager]
-            console.log(values)
-            db.query(`INSERT INTO employees (id, first_name, last_name, role_id, manager_id) VALUES ?`, values, function(err, result) {
-                console.log('New Employee Added')
+            let values = `${newId}, '${newFirstName}', '${newLastName}', ${results[0].id}, ${newManager}`;
+            console.log(values);
+            db.query(`INSERT INTO employees (id, first_name, last_name, role_id, manager_id) VALUES (${values})`, function(err, result) {
+                console.log('\nNew Employee Added!\n')
                 mainMenu();
             })
         })
-        // db.query(`INSERT INTO employees (id, first_name, last_name, role_id, manager_id)
-        //     VALUES (009, 'John', 'Jones', 002, 001)`, function(err, result) {
-        //         console.log('New Employee Added');
-        //         mainMenu();
-        //     })
     })
-  }
+}
 
-  const rolesQuery = (i) => {
-    // let title
-    db.query(`SELECT title FROM employee_role WHERE id = ?`, i, (err, results) => {
-        // console.log(results[0].title)
-        // title = results[0].title
-        allRoles.push(results[0].title)
-        // console.log(title)
+const addDept = () => {
+    inquirer.prompt(
+        {
+            type: 'input',
+            name: 'dept',
+            message: 'Enter new Department name'
+        }
+    )
+    .then((data) => {
+        db.query(`INSERT INTO departments (dept_name) VALUES (${data.dept})`, (err, results) => {
+            console.log('\nDepartment added!\n')
+            mainMenu()
+        })
     })
-    // console.log(title)
-    // return title
-  }
+}
 
-  const roleArrayBuilder = () => {
-    let i = 001;
-    rolesQuery(i)
-    // while(rolesQuery(i) != null) {
-        console.log(allRoles)
-    // }
-  }
-// roleArrayBuilder()
-  mainMenu()
+const rolesQuery = () => {
+db.query(`SELECT title FROM employee_role`, (err, results) => {
+    for(let i = 0; i < results.length; i++) {
+    allRoles.push(results[i].title)
+    }
+addEmployee()
+})
+}
+
+
+mainMenu()
