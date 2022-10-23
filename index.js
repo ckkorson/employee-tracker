@@ -26,7 +26,7 @@ const db = mysql.createConnection(
         if (data.menu === 'View All Departments') {
             viewDepartments()
         } else if(data.menu === 'View All Roles') {
-            
+            viewRoles()
         }
     })
   }
@@ -36,6 +36,15 @@ const db = mysql.createConnection(
         console.table(results);
         mainMenu()
       });
+  }
+
+  const viewRoles = () => {
+    db.query(`SELECT employee_role.id, employee_role.title ,departments.dept_name, employee_role.salary
+        FROM departments
+        JOIN employee_role ON employee_role.department_id=departments.id`, function (err, results) {
+            console.table(results);
+            mainMenu()
+          });
   }
 
   mainMenu()
