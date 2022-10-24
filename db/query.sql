@@ -12,7 +12,7 @@
 
 -- SELECT title FROM employee_role WHERE id=001
 
-SELECT A.first_name AS first_name, A.last_name AS last_name, CONCAT(B.first_name,' ', B.last_name) AS manager
-FROM employees A, employees B
-WHERE A.manager_id = B.id
-OR NULL;
+-- SELECT A.first_name AS first_name, A.last_name AS last_name, CONCAT(B.first_name,' ', B.last_name) AS manager
+-- FROM employees A, employees B
+-- WHERE A.manager_id = B.id
+-- OR NULL;
