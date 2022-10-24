@@ -57,17 +57,26 @@ const viewRoles = () => {
         JOIN employee_role ON employee_role.department_id=departments.id`, function (err, results) {
             console.table('\n',results);
             mainMenu()
-          });
+        });
 }
 
 const viewEmployees = () => {
-    db.query(`SELECT employees.id, employees.first_name, employees.last_name, employee_role.title, departments.dept_name, employee_role.salary
+    db.query(`SELECT employees.id, employees.first_name, employees.last_name, employee_role.title, departments.dept_name AS department, employee_role.salary, employees.manager_id AS manager
         FROM employees
         JOIN employee_role ON employee_role.id=employees.role_id
         JOIN departments ON departments.id=employee_role.department_id`, function(err, results) {
+            for(let i = 0; i < results.length; i++) {
+                if(results[i].manager != null) {
+                    for(let j = 0; j < results.length; j++) {
+                        if(results[i].manager == results[j].id) {
+                            results[i].manager = results[j].first_name + ' ' + results[j].last_name
+                        }
+                    }
+                }
+            }
             console.table('\n',results);
             mainMenu()
-        })
+        });
 }
 
 const addEmployee = () => {
