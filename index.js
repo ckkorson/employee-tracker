@@ -6,6 +6,9 @@ const cTable = require('console.table');
 // 'Accountant', 'HR Manager', 'HR Specialist'];
 let allRoles =[];
 let allDepts = [];
+let allEmployees = [];
+let employeeNames = [];
+let menuSelection;
 
 const db = mysql.createConnection(
     {
@@ -28,13 +31,14 @@ const mainMenu = () => {
         }
     )
     .then((data) => {
+        menuSelection = data.menu;
         if (data.menu === 'View All Departments') {
             viewDepartments()
         } else if(data.menu === 'View All Roles') {
             viewRoles()
         } else if (data.menu === 'View All Employees') {
             viewEmployees()
-        } else if (data.menu === 'Add Employee') {
+        } else if (data.menu === 'Add Employee' || 'Update Employee Role') {
             rolesQuery()
         } else if (data.menu === 'Add Department') {
             addDept()
@@ -98,15 +102,17 @@ const addEmployee = () => {
             choices: allRoles
         },
         {
-            type: 'input',
-            name: 'manager',
-            message: 'Enter manager id'
+            type: 'list',
+            name: 'fullName',
+            message: 'Select manager name',
+            choices: employeeNames
         }
     ])
     .then((data) => {
         let newFirstName = data.firstName;
         let newLastName = data.lastName;
-        let newManager = data.manager
+        let newManager = idMatcher(data);
+        console.log(newManager);
         db.query(`SELECT id FROM employees`, (err, results) => {
             let newId = results.length;
             newId++;
@@ -174,12 +180,40 @@ const addRole = () => {
     })
 }
 
+const updateRole = () => {
+    inquirer.prompt([
+        {
+            type: 'list',
+            name: 'fullName',
+            message: 'What employee would you like to update?',
+            choices: employeeNames
+        },
+        {
+            type: 'list',
+            name: 'role',
+            message: 'What their new role?',
+            choices: allRoles
+        }
+    ])
+    .then((data) => {
+        employeeId = idMatcher(data);
+        db.query(`SELECT id FROM employee_role WHERE title='${data.role}'`,(err, results) => {
+            db.query(`UPDATE employees SET role_id=${results[0].id} WHERE id=${employeeId}`, (err, results) => {
+                console.log(`\n${data.fullName}'s role updated to ${data.role}`)
+                mainMenu()
+            })
+        })
+    })
+}
+
 const rolesQuery = () => {
     db.query(`SELECT title FROM employee_role`, (err, results) => {
         for(let i = 0; i < results.length; i++) {
             allRoles.push(results[i].title)
         }
-        addEmployee()
+        if(menuSelection == 'Add Employee' || 'Update Employee Role') {
+            employeeQuery()
+        }
     })
 }
 
@@ -188,9 +222,32 @@ const deptQuery = () => {
         for(let i = 0; i < results.length; i++){
             allDepts.push(results[i].dept_name)
         }
-        addRole()
+        if(menuSelection == 'Add Role') {
+            addRole()
+        }
     })
 }
 
+const employeeQuery = () => {
+    db.query(`SELECT id, CONCAT(first_name, ' ', last_name) AS full_name FROM employees`, (err, results) => {
+        allEmployees = results;
+        for(let i = 0; i < allEmployees.length; i++) {
+            employeeNames.push(allEmployees[i].full_name)
+        }
+        if(menuSelection == 'Add Employee') {
+            addEmployee()
+        }else if(menuSelection == 'Update Employee Role') {
+            updateRole()
+        }
+    })
+}
+
+const idMatcher = (data) => {
+    for(let i = 0; i < allEmployees.length; i++) {
+        if(allEmployees[i].full_name == data.fullName) {
+            return allEmployees[i].id;
+        }
+    }
+}
 
 mainMenu()
