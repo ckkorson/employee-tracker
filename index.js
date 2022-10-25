@@ -16,7 +16,7 @@ const db = mysql.createConnection(
       password: process.env.DB_PASSWORD,
       database: 'employees_db'
     },
-    console.log(`Connected to the employees_db database.`)
+    console.log(`\nConnected to the employees_db database.\n`)
 );
 
 const mainMenu = () => {
@@ -115,8 +115,12 @@ const addEmployee = () => {
     .then((data) => {
         let newFirstName = data.firstName;
         let newLastName = data.lastName;
-        let newManager = idMatcher(data);
-        console.log(newManager);
+        let newManager;
+        if (data.fullName === 'NONE') {
+            newManager = null;
+        } else {
+            newManager = idMatcher(data);
+        }
         db.query(`SELECT id FROM employees`, (err, results) => {
             let newId = results.length;
             newId++;
@@ -140,7 +144,6 @@ const addDept = () => {
         }
     )
     .then((data) => {
-        console.log(data.dept)
         db.query(`INSERT INTO departments (dept_name) VALUES ('${data.dept}')`, (err, results) => {
             console.log('\nDepartment added!\n')
             mainMenu()
@@ -203,7 +206,7 @@ const updateRole = () => {
         employeeId = idMatcher(data);
         db.query(`SELECT id FROM employee_role WHERE title='${data.role}'`,(err, results) => {
             db.query(`UPDATE employees SET role_id=${results[0].id} WHERE id=${employeeId}`, (err, results) => {
-                console.log(`\n${data.fullName}'s role updated to ${data.role}`)
+                console.log(`\n${data.fullName}'s role updated to ${data.role}\n`)
                 mainMenu()
             })
         })
@@ -239,6 +242,7 @@ const employeeQuery = () => {
             employeeNames.push(allEmployees[i].full_name)
         }
         if(menuSelection == 'Add Employee') {
+            employeeNames.push('NONE');
             addEmployee()
         }else if(menuSelection == 'Update Employee Role') {
             updateRole()
