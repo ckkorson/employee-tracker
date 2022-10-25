@@ -3,8 +3,6 @@ const inquirer = require('inquirer');
 const cTable = require('console.table');
 require('dotenv').config();
 
-// let allRoles =['Sales Lead', 'Salesperson', 'Engineering Manager', 'Software Engineer', 'Account Manager',
-// 'Accountant', 'HR Manager', 'HR Specialist'];
 let allRoles =[];
 let allDepts = [];
 let allEmployees = [];
