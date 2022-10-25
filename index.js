@@ -1,6 +1,7 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
+require('dotenv').config();
 
 // let allRoles =['Sales Lead', 'Salesperson', 'Engineering Manager', 'Software Engineer', 'Account Manager',
 // 'Accountant', 'HR Manager', 'HR Specialist'];
@@ -13,8 +14,8 @@ let menuSelection;
 const db = mysql.createConnection(
     {
       host: 'localhost',
-      user: 'root',
-      password: 'ckor5250',
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
       database: 'employees_db'
     },
     console.log(`Connected to the employees_db database.`)
@@ -33,17 +34,22 @@ const mainMenu = () => {
     .then((data) => {
         menuSelection = data.menu;
         if (data.menu === 'View All Departments') {
-            viewDepartments()
+            viewDepartments();
         } else if(data.menu === 'View All Roles') {
-            viewRoles()
+            viewRoles();
         } else if (data.menu === 'View All Employees') {
-            viewEmployees()
-        } else if (data.menu === 'Add Employee' || 'Update Employee Role') {
-            rolesQuery()
+            viewEmployees();
+        } else if (data.menu === 'Add Employee') {
+            rolesQuery();
+        } else if (data.menu === 'Update Employee Role') {
+            rolesQuery();
         } else if (data.menu === 'Add Department') {
-            addDept()
+            addDept();
         } else if (data.menu === 'Add Role') {
-            deptQuery()
+            deptQuery();
+        } else if (data.menu === 'Quit') {
+            console.log('\nGoodbye\n');
+            db.end();
         }
     })
 }
